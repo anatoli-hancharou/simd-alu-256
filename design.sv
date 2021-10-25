@@ -32,9 +32,26 @@ module simd_alu_top(
     .udf(out_underflow)
   );
   
-  //when opcode defines signed data operation then this variable is set to ""
-  assign w_data_signed = (opcode == S_ADD8) || (opcode == S_ADD16) || (opcode == S_ADD32) || (opcode == S_ADD64);
-  assign sub = (opcode == SUB8) || (opcode == SUB16) || (opcode == SUB32) || (opcode == SUB64);
+  //when opcode defines signed data operation then this variable is set to "1"
+  assign w_data_signed = 
+    (opcode == S_ADD8)  ||
+    (opcode == S_ADD16) ||
+    (opcode == S_ADD32) ||
+    (opcode == S_ADD64) ||
+    (opcode == S_SUB8)  ||
+    (opcode == S_SUB16) ||
+    (opcode == S_SUB32) ||
+    (opcode == S_SUB64);
+  
+  assign sub = 
+    (opcode == SUB8)    ||
+    (opcode == SUB16)   ||
+    (opcode == SUB32)   ||
+    (opcode == SUB64)   ||
+    (opcode == S_SUB8)  ||
+    (opcode == S_SUB16) ||
+    (opcode == S_SUB32) ||
+    (opcode == S_SUB64);
   
   assign out = r_out;
   
@@ -47,10 +64,10 @@ module simd_alu_top(
   //select ALU input arguments data chunk size
   always @(posedge clk) begin
     case (opcode)
-      ADD8, S_ADD8, SUB8        : r_data_mode = 0;// 8-bits input argument chunks
-      ADD16, S_ADD16, SUB16     : r_data_mode = 1;// 16-bits input argument chunks
-      ADD32, S_ADD32, SUB32     : r_data_mode = 2;// 32-bits input argument chunks
-      ADD64, S_ADD64, SUB64     : r_data_mode = 3;// 64-bits input argument chunks 
+      ADD8, S_ADD8, SUB8, S_SUB8         : r_data_mode = 0;// 8-bits input argument chunks
+      ADD16, S_ADD16, SUB16, S_SUB16     : r_data_mode = 1;// 16-bits input argument chunks
+      ADD32, S_ADD32, SUB32, S_SUB32     : r_data_mode = 2;// 32-bits input argument chunks
+      ADD64, S_ADD64, SUB64, S_SUB64     : r_data_mode = 3;// 64-bits input argument chunks 
       default : r_data_mode = 0;
     endcase
   end
@@ -58,7 +75,7 @@ module simd_alu_top(
   //math block's result operation selector
   always @(*) begin
     case (opcode)
-      ADD8, S_ADD8, ADD16, S_ADD16, ADD32, S_ADD32, ADD64, S_ADD64, SUB8, SUB16, SUB32, SUB64  : r_out = r_adder_out;
+      ADD8, S_ADD8, ADD16, S_ADD16, ADD32, S_ADD32, ADD64, S_ADD64, SUB8, SUB16, SUB32, SUB64, S_SUB8, S_SUB16, S_SUB32, S_SUB64  : r_out = r_adder_out;
       default : r_out = 0;
     endcase
   end

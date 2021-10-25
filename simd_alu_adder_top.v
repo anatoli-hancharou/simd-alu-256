@@ -38,7 +38,7 @@ module simd_alu_adder_top (
           end else begin // signed two's complement data
             r_s_a8 = a[(_idx + 1)*8 - 1 -: 8];
             r_s_b8 = B_real[(_idx + 1)*8 - 1 -: 8];
-            r_res[(_idx + 1)*8 - 1 -: 8] = r_s_a8 + r_s_b8;
+            r_res[(_idx + 1)*8 - 1 -: 8] = r_s_a8 + r_s_b8 + sub;
             //check data overflow condition
             r_ovf[_idx] = ~(r_s_a8[MSB_8B] ^ r_s_b8[MSB_8B]) & (r_s_a8[MSB_8B] ^ r_res[MSB_8B]);
           end
@@ -51,7 +51,7 @@ module simd_alu_adder_top (
           end else begin // signed two's complement data
             r_s_a16 = a[(_idx + 1)*16 - 1 -: 16];
             r_s_b16 = B_real[(_idx + 1)*16 - 1 -: 16];
-            r_res[(_idx + 1)*16 - 1 -: 16] = r_s_a16 + r_s_b16;
+            r_res[(_idx + 1)*16 - 1 -: 16] = r_s_a16 + r_s_b16 + sub;
           end
       	end
       end
@@ -62,7 +62,7 @@ module simd_alu_adder_top (
           end else begin // signed two's complement data 
             r_s_a32 = a[(_idx + 1)*32 - 1 -: 32]; 
             r_s_b32 = B_real[(_idx + 1)*32 - 1 -: 32]; 
-            r_res[(_idx + 1)*32 - 1 -: 32] = r_s_a32 + r_s_b32; 
+            r_res[(_idx + 1)*32 - 1 -: 32] = r_s_a32 + r_s_b32 + sub; 
           end 
        end 
       end
@@ -73,7 +73,7 @@ module simd_alu_adder_top (
           end else begin // signed two's complement data 
             r_s_a64 = a[(_idx + 1)*64 - 1 -: 64]; 
             r_s_b64 = B_real[(_idx + 1)*64 - 1 -: 64]; 
-            r_res[(_idx + 1)*64 - 1 -: 64] = r_s_a64 + r_s_b64; 
+            r_res[(_idx + 1)*64 - 1 -: 64] = r_s_a64 + r_s_b64 + sub; 
           end 
        end 
       end

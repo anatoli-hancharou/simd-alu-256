@@ -74,7 +74,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*8 - 1 -: 8] = a_arg8[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*8 - 1 -: 8] = b_arg8[data_chunk_idx];
       end
-      S_ADD8:
+      S_ADD8, S_SUB8:
         // fill 256-bits data vector by chunk with Signed data array elements
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/8; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*8 - 1 -: 8] = s_a_arg8[data_chunk_idx];
@@ -85,7 +85,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*16 - 1 -: 16] = a_arg16[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*16 - 1 -: 16] = b_arg16[data_chunk_idx];
       end
-      S_ADD16:
+      S_ADD16, S_SUB16:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/16; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*16 - 1 -: 16] = s_a_arg16[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*16 - 1 -: 16] = s_b_arg16[data_chunk_idx];
@@ -95,7 +95,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*32 - 1 -: 32] = a_arg32[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*32 - 1 -: 32] = b_arg32[data_chunk_idx];
       end
-      S_ADD32:
+      S_ADD32, S_SUB32:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/32; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*32 - 1 -: 32] = s_a_arg32[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*32 - 1 -: 32] = s_b_arg32[data_chunk_idx];
@@ -105,7 +105,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*64 - 1 -: 64] = a_arg64[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*64 - 1 -: 64] = b_arg64[data_chunk_idx];
       end
-      S_ADD64:
+      S_ADD64, S_SUB64:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/64; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*64 - 1 -: 64] = s_a_arg64[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*64 - 1 -: 64] = s_b_arg64[data_chunk_idx];
@@ -171,6 +171,24 @@ parameter CLOCK_PERIOD = 10;
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
       if (simd_alu_out[(data_idx + 1)*8 - 1 -: 8] !== 255) begin
         $display("\tWrong SUB8 test result: got %0d (!= 255), while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*8 - 1 -: 8], a_arg8[data_idx], b_arg8[data_idx]);
+        error_cnt++;
+      end
+    end
+    
+    #(CLOCK_PERIOD);
+    $display("%tns: Start S_SUB8 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
+      s_a_arg8[data_idx] = -data_idx;
+      s_b_arg8[data_idx] = data_idx;
+    end
+    simd_opcode = S_SUB8;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results
+    $display("%tns: Check the results of the S_SUB8 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
+      r_s_res8 = simd_alu_out[(data_idx + 1)*8 - 1 -: 8];
+      if (r_s_res8 !== -2*data_idx) begin
+        $display("\tWrong S_SUB8 test result: got %0d (!= %0d), while arg_a=%0d and arg_b=%0d", r_s_res8, s_a_arg8[data_idx], -2*data_idx, s_b_arg8[data_idx]);
         error_cnt++;
       end
     end
@@ -248,6 +266,24 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
+    #(CLOCK_PERIOD);
+    $display("%tns: Start S_SUB16 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/16; data_idx++) begin
+      s_a_arg16[data_idx] = -32768;
+      s_b_arg16[data_idx] = 32767;
+    end
+    simd_opcode = S_SUB16;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results
+    $display("%tns: Check the results of the S_SUB16 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/16; data_idx++) begin
+      r_s_res16 = simd_alu_out[(data_idx + 1)*16 - 1 -: 16];
+      if (r_s_res16 !== 1) begin
+        $display("\tWrong S_SUB16 test result: got %0d (!= 1), while arg_a=%0d and arg_b=%0d", r_s_res16, s_a_arg16[data_idx], s_b_arg16[data_idx]);
+        error_cnt++;
+      end
+    end
+    
     // ************ 32-bits data ************ //
     #(CLOCK_PERIOD);
     $display("%tns: Start ADD32 operation", $time);
@@ -300,6 +336,24 @@ parameter CLOCK_PERIOD = 10;
         error_cnt++;
       end
     end
+    
+    #(CLOCK_PERIOD);
+    $display("%tns: Start S_SUB32 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/32; data_idx++) begin
+      s_a_arg32[data_idx] = -100 * data_idx;
+      s_b_arg32[data_idx] = -100 * data_idx;
+    end
+    simd_opcode = S_SUB32;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results
+    $display("%tns: Check the results of the S_SUB32 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/32; data_idx++) begin
+      r_s_res32 = simd_alu_out[(data_idx + 1)*32 - 1 -: 32];
+      if (r_s_res32 !== 0) begin
+        $display("\tWrong S_SUB32 test result: got %0d (!= 0), while arg_a=%0d and arg_b=%0d", r_s_res32, s_a_arg32[data_idx], s_b_arg32[data_idx]);
+        error_cnt++;
+      end
+    end
     // ************ 64-bits data ************ //
     #(CLOCK_PERIOD);
     $display("%tns: Start ADD64 operation", $time);
@@ -339,16 +393,34 @@ parameter CLOCK_PERIOD = 10;
     #(CLOCK_PERIOD);
     $display("%tns: Start SUB64 operation", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
-      a_arg64[data_idx] = 0;
-      b_arg64[data_idx] = -1;
+      a_arg64[data_idx] = 64'h7fff_ffff_ffff_ffff;
+      b_arg64[data_idx] = 64'h8000_0000_0000_0000;
     end
     simd_opcode = SUB64;
     
     #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results 
     $display("%tns: Check the results of the SUB64 operation", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
-      if (simd_alu_out[(data_idx + 1)*64 - 1 -: 64] !== 1) begin
-        $display("\tWrong SUB64 test result: got %0d (!= 1), while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*64 - 1 -: 64], a_arg64[data_idx], b_arg64[data_idx]);
+      if (simd_alu_out[(data_idx + 1)*64 - 1 -: 64] !== 64'hffff_ffff_ffff_ffff) begin
+        $display("\tWrong SUB64 test result: got %0d (!= 64'h7fff_ffff_ffff_ffff), while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*64 - 1 -: 64], a_arg64[data_idx], b_arg64[data_idx]);
+        error_cnt++;
+      end
+    end
+    
+    #(CLOCK_PERIOD);
+    $display("%tns: Start S_SUB64 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
+      s_a_arg64[data_idx] = -data_idx;
+      s_b_arg64[data_idx] = -1024 + data_idx;
+    end
+    simd_opcode = S_SUB64;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results
+    $display("%tns: Check the results of the S_SUB64 operation:", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
+      r_s_res64 = simd_alu_out[(data_idx + 1)*64 - 1 -: 64];
+      if (r_s_res64 !== 1024 - 2*data_idx) begin
+        $display("\tWrong S_SUB64 test result: got %0d (!= %0d), while arg_a=%0d and arg_b=%0d", r_s_res64, 1024 - 2*data_idx, s_a_arg64[data_idx], s_b_arg64[data_idx]);
         error_cnt++;
       end
     end
