@@ -8,8 +8,8 @@ module simd_alu_top(
   input 	[SIMD_DATA_WIDTH - 1 : 0] 	in_b,
   input     [SIMD_OPC_WIDTH - 1 : 0]  	opcode,
   output 	[SIMD_DATA_WIDTH - 1 : 0] 	out,
-  output								out_overflow,
-  output								out_underflow
+  output	[SIMD_DATA_WIDTH/8 - 1 : 0]	out_overflow,
+  output	[SIMD_DATA_WIDTH/8 - 1 : 0]	out_underflow
 );
   
   reg [SIMD_DATA_WIDTH - 1 : 0] r_a;
@@ -25,7 +25,9 @@ module simd_alu_top(
     .b(r_b),
     .data_mode(r_data_mode),
     .data_signed(w_data_signed),
-    .result(r_adder_out)
+    .result(r_adder_out),
+    .ovf(out_overflow),
+    .udf(out_underflow)
   );
   
   //when opcode defines signed data operation then this variable is set to ""

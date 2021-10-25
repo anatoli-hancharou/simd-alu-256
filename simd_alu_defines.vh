@@ -4,6 +4,8 @@
 	parameter SIMD_OPC_WIDTH				= 5;
 	parameter SIMD_ADDER_DATA_MODE_WIDTH	= 2;
 
+	parameter MSB_8B						= 7;//MostSignificantBit of 8-bits data
+
 	parameter NOP							= 0;
 	parameter ADD8 							= 1;
 	parameter ADD16 						= 2;
