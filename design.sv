@@ -1,6 +1,7 @@
 `include "simd_alu_defines.vh"
 `include "simd_alu_adder_top.v"
 `include "simd_alu_shifter_top.v"
+`include "simd_alu_eq_comparer_top.v"
 
 module simd_alu_top(
   input     							clk,
@@ -18,6 +19,7 @@ module simd_alu_top(
   reg [SIMD_ADDER_DATA_MODE_WIDTH - 1 : 0]	r_data_mode;
   reg [SIMD_DATA_WIDTH - 1 : 0] r_adder_out;
   reg [SIMD_DATA_WIDTH - 1 : 0] r_shifter_out;
+  reg [SIMD_DATA_WIDTH - 1 : 0] r_comparer_out;
   reg [SIMD_DATA_WIDTH - 1 : 0] r_out;
   
   wire w_data_signed;
@@ -41,6 +43,13 @@ module simd_alu_top(
     .data_mode(r_data_mode),
     .left(w_left),
     .result(r_shifter_out)
+  );
+  
+  simd_alu_eq_comparer_top eq_comparer(
+    .a(r_a),
+    .b(r_b),
+    .data_mode(r_data_mode),
+    .result(r_comparer_out)
   );
   
   //when opcode defines signed data operation then w_data_signed is set to "1"
@@ -83,10 +92,10 @@ module simd_alu_top(
   //select ALU input arguments data chunk size
   always @(posedge clk) begin
     case (opcode)
-      ADD8, S_ADD8, SUB8, S_SUB8, LSL8, LSR8        : r_data_mode = 0;// 8-bits input argument chunks
-      ADD16, S_ADD16, SUB16, S_SUB16, LSL16, LSR16  : r_data_mode = 1;// 16-bits input argument chunks
-      ADD32, S_ADD32, SUB32, S_SUB32, LSL32, LSR32  : r_data_mode = 2;// 32-bits input argument chunks
-      ADD64, S_ADD64, SUB64, S_SUB64, LSL64, LSR64  : r_data_mode = 3;// 64-bits input argument chunks 
+      ADD8, S_ADD8, SUB8, S_SUB8, LSL8, LSR8, CMP8         : r_data_mode = 0;// 8-bits input argument chunks
+      ADD16, S_ADD16, SUB16, S_SUB16, LSL16, LSR16, CMP16  : r_data_mode = 1;// 16-bits input argument chunks
+      ADD32, S_ADD32, SUB32, S_SUB32, LSL32, LSR32, CMP32  : r_data_mode = 2;// 32-bits input argument chunks
+      ADD64, S_ADD64, SUB64, S_SUB64, LSL64, LSR64, CMP64  : r_data_mode = 3;// 64-bits input argument chunks 
       default : r_data_mode = 0;
     endcase
   end
@@ -96,6 +105,7 @@ module simd_alu_top(
     case (opcode)
       ADD8, S_ADD8, ADD16, S_ADD16, ADD32, S_ADD32, ADD64, S_ADD64, SUB8, SUB16, SUB32, SUB64, S_SUB8, S_SUB16, S_SUB32, S_SUB64  : r_out = r_adder_out;
       LSL8, LSL16, LSL32, LSL64, LSR8, LSR16, LSR32, LSR64   : r_out = r_shifter_out;
+      CMP8, CMP16, CMP32, CMP64                              : r_out = r_comparer_out;
       default : r_out = 0;
     endcase
   end

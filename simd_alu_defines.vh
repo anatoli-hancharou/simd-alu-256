@@ -34,4 +34,10 @@
 	parameter LSR32                         = 23;
 	parameter LSR64                         = 24;
 
+    parameter CMP8                          = 25;
+	parameter CMP16                         = 26;
+	parameter CMP32                         = 27;
+	parameter CMP64                         = 28;
+
+
 `endif
