@@ -1,5 +1,6 @@
 `include "simd_alu_defines.vh"
 `include "simd_alu_adder_top.v"
+`include "simd_alu_shifter_top.v"
 
 module simd_alu_top(
   input     							clk,
@@ -16,23 +17,33 @@ module simd_alu_top(
   reg [SIMD_DATA_WIDTH - 1 : 0] r_b;
   reg [SIMD_ADDER_DATA_MODE_WIDTH - 1 : 0]	r_data_mode;
   reg [SIMD_DATA_WIDTH - 1 : 0] r_adder_out;
+  reg [SIMD_DATA_WIDTH - 1 : 0] r_shifter_out;
   reg [SIMD_DATA_WIDTH - 1 : 0] r_out;
   
   wire w_data_signed;
-  wire sub;
+  wire w_sub;
+  wire w_left;
   
   simd_alu_adder_top adder(
     .a(r_a),
     .b(r_b),
     .data_mode(r_data_mode),
     .data_signed(w_data_signed),
-    .sub(sub),
+    .sub(w_sub),
     .result(r_adder_out),
     .ovf(out_overflow),
     .udf(out_underflow)
   );
   
-  //when opcode defines signed data operation then this variable is set to "1"
+  simd_alu_shifter_top shifter(
+    .a(r_a),
+    .b(r_b),
+    .data_mode(r_data_mode),
+    .left(w_left),
+    .result(r_shifter_out)
+  );
+  
+  //when opcode defines signed data operation then w_data_signed is set to "1"
   assign w_data_signed = 
     (opcode == S_ADD8)  ||
     (opcode == S_ADD16) ||
@@ -43,7 +54,8 @@ module simd_alu_top(
     (opcode == S_SUB32) ||
     (opcode == S_SUB64);
   
-  assign sub = 
+  //when opcode defines substruction operation then w_sub is set to "1"
+  assign w_sub = 
     (opcode == SUB8)    ||
     (opcode == SUB16)   ||
     (opcode == SUB32)   ||
@@ -52,6 +64,13 @@ module simd_alu_top(
     (opcode == S_SUB16) ||
     (opcode == S_SUB32) ||
     (opcode == S_SUB64);
+  
+  //when opcode defines left shift operation then w_left is set to "1", otherwise it defines fight shift
+  assign w_left = 
+    (opcode == LSL8)  ||
+    (opcode == LSL16) ||
+    (opcode == LSL32) ||
+    (opcode == LSL64);
   
   assign out = r_out;
   
@@ -64,10 +83,10 @@ module simd_alu_top(
   //select ALU input arguments data chunk size
   always @(posedge clk) begin
     case (opcode)
-      ADD8, S_ADD8, SUB8, S_SUB8         : r_data_mode = 0;// 8-bits input argument chunks
-      ADD16, S_ADD16, SUB16, S_SUB16     : r_data_mode = 1;// 16-bits input argument chunks
-      ADD32, S_ADD32, SUB32, S_SUB32     : r_data_mode = 2;// 32-bits input argument chunks
-      ADD64, S_ADD64, SUB64, S_SUB64     : r_data_mode = 3;// 64-bits input argument chunks 
+      ADD8, S_ADD8, SUB8, S_SUB8, LSL8, LSR8        : r_data_mode = 0;// 8-bits input argument chunks
+      ADD16, S_ADD16, SUB16, S_SUB16, LSL16, LSR16  : r_data_mode = 1;// 16-bits input argument chunks
+      ADD32, S_ADD32, SUB32, S_SUB32, LSL32, LSR32  : r_data_mode = 2;// 32-bits input argument chunks
+      ADD64, S_ADD64, SUB64, S_SUB64, LSL64, LSR64  : r_data_mode = 3;// 64-bits input argument chunks 
       default : r_data_mode = 0;
     endcase
   end
@@ -76,6 +95,7 @@ module simd_alu_top(
   always @(*) begin
     case (opcode)
       ADD8, S_ADD8, ADD16, S_ADD16, ADD32, S_ADD32, ADD64, S_ADD64, SUB8, SUB16, SUB32, SUB64, S_SUB8, S_SUB16, S_SUB32, S_SUB64  : r_out = r_adder_out;
+      LSL8, LSL16, LSL32, LSL64, LSR8, LSR16, LSR32, LSR64   : r_out = r_shifter_out;
       default : r_out = 0;
     endcase
   end

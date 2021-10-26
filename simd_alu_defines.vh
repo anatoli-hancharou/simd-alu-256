@@ -20,9 +20,18 @@
 	parameter SUB16                         = 10;
 	parameter SUB32                         = 11;
 	parameter SUB64                         = 12;
-    parameter S_SUB8                        = 13;
+	parameter S_SUB8                        = 13;
 	parameter S_SUB16                       = 14;
 	parameter S_SUB32                       = 15;
 	parameter S_SUB64                       = 16;
+
+    parameter LSL8                          = 17;
+	parameter LSL16                         = 18;
+	parameter LSL32                         = 19;
+	parameter LSL64                         = 20;
+	parameter LSR8                          = 21;
+	parameter LSR16                         = 22;
+	parameter LSR32                         = 23;
+	parameter LSR64                         = 24;
 
 `endif
