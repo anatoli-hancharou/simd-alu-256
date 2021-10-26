@@ -1,7 +1,7 @@
 `ifndef _SIMD_ALU_DEFINES_VH_
 `define _SIMD_ALU_DEFINES_VH_
 	parameter SIMD_DATA_WIDTH               = 256;
-	parameter SIMD_OPC_WIDTH                = 5;
+	parameter SIMD_OPC_WIDTH                = 6;
 	parameter SIMD_ADDER_DATA_MODE_WIDTH    = 2;
 
 	parameter MSB_8B                        = 7;//MostSignificantBit of 8-bits data
@@ -38,6 +38,11 @@
 	parameter CMP16                         = 26;
 	parameter CMP32                         = 27;
 	parameter CMP64                         = 28;
+
+    parameter GT8                           = 29;
+	parameter GT16                          = 30;
+	parameter GT32                          = 31;
+	parameter GT64                          = 32;
 
 
 `endif

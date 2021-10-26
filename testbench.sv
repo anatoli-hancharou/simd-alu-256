@@ -68,7 +68,7 @@ parameter CLOCK_PERIOD = 10;
   // make SIMD ALU input Data vectors (A and B)
   always @(*) begin
     case (simd_opcode)
-      ADD8, SUB8, LSL8, LSR8, CMP8:
+      ADD8, SUB8, LSL8, LSR8, CMP8, GT8:
         // fill 256-bits data vector by chunk with unsigned data array elements
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/8; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*8 - 1 -: 8] = a_arg8[data_chunk_idx];
@@ -80,7 +80,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*8 - 1 -: 8] = s_a_arg8[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*8 - 1 -: 8] = s_b_arg8[data_chunk_idx];
       end
-      ADD16, SUB16, LSL16, LSR16, CMP16:
+      ADD16, SUB16, LSL16, LSR16, CMP16, GT16:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/16; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*16 - 1 -: 16] = a_arg16[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*16 - 1 -: 16] = b_arg16[data_chunk_idx];
@@ -90,7 +90,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*16 - 1 -: 16] = s_a_arg16[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*16 - 1 -: 16] = s_b_arg16[data_chunk_idx];
       end
-      ADD32, SUB32, LSL32, LSR32, CMP32:
+      ADD32, SUB32, LSL32, LSR32, CMP32, GT32:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/32; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*32 - 1 -: 32] = a_arg32[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*32 - 1 -: 32] = b_arg32[data_chunk_idx];
@@ -100,7 +100,7 @@ parameter CLOCK_PERIOD = 10;
           simd_alu_arg_a[(data_chunk_idx + 1)*32 - 1 -: 32] = s_a_arg32[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*32 - 1 -: 32] = s_b_arg32[data_chunk_idx];
       end
-      ADD64, SUB64, LSL64, LSR64, CMP64:
+      ADD64, SUB64, LSL64, LSR64, CMP64, GT64:
         for (data_chunk_idx = 0; data_chunk_idx < SIMD_DATA_WIDTH/64; data_chunk_idx++) begin
           simd_alu_arg_a[(data_chunk_idx + 1)*64 - 1 -: 64] = a_arg64[data_chunk_idx];
           simd_alu_arg_b[(data_chunk_idx + 1)*64 - 1 -: 64] = b_arg64[data_chunk_idx];
@@ -240,6 +240,23 @@ parameter CLOCK_PERIOD = 10;
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
       if (simd_alu_out[(data_idx + 1)*8 - 1 -: 8] !== data_idx % 2 === 0 ? 1 : 0) begin
         $display("\tWrong CMP8 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*8 - 1 -: 8], a_arg8[data_idx], b_arg8[data_idx]);
+        error_cnt++;
+      end
+    end
+    
+      #(CLOCK_PERIOD);
+    $display("\n%tns: Start GT8 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
+      a_arg8[data_idx] = data_idx + 1;
+      b_arg8[data_idx] = (-1)**data_idx * data_idx;
+    end
+    simd_opcode = GT8;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results 
+    $display("%tns: Check the results of the GT8 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
+      if (simd_alu_out[(data_idx + 1)*8 - 1 -: 8] !== data_idx % 2 === 0 ? 1 : 0) begin
+        $display("\tWrong GT8 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*8 - 1 -: 8], a_arg8[data_idx], b_arg8[data_idx]);
         error_cnt++;
       end
     end
@@ -386,6 +403,23 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
+    #(CLOCK_PERIOD);
+    $display("%tns: Start GT16 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/16; data_idx++) begin
+      a_arg16[data_idx] = 1 << data_idx;
+      b_arg16[data_idx] = 1 << data_idx;
+    end
+    simd_opcode = GT16;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results 
+    $display("%tns: Check the results of the GT16 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/16; data_idx++) begin
+      if (simd_alu_out[(data_idx + 1)*16 - 1 -: 16] !== 0) begin
+        $display("\tWrong GT16 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*16 - 1 -: 16], a_arg16[data_idx], b_arg16[data_idx]);
+        error_cnt++;
+      end
+    end
+    
     // ************ 32-bits data ************ //
     #(CLOCK_PERIOD);
     $display("%tns: Start ADD32 operation", $time);
@@ -508,6 +542,23 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
+    #(CLOCK_PERIOD);
+    $display("%tns: Start GT32 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/32; data_idx++) begin
+      a_arg32[data_idx] = 15 * (data_idx + 1);
+      b_arg32[data_idx] = 10 * (data_idx + 1);
+    end
+    simd_opcode = GT32;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results 
+    $display("%tns: Check the results of the GT32 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/32; data_idx++) begin
+      if (simd_alu_out[(data_idx + 1)*32 - 1 -: 32] !== 1) begin
+        $display("\tWrong GT32 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*32 - 1 -: 32], a_arg32[data_idx], b_arg32[data_idx]);
+        error_cnt++;
+      end
+    end
+    
     // ************ 64-bits data ************ //
     #(CLOCK_PERIOD);
     $display("%tns: Start ADD64 operation", $time);
@@ -626,6 +677,23 @@ parameter CLOCK_PERIOD = 10;
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
       if (simd_alu_out[(data_idx + 1)*64 - 1 -: 64] !== 1) begin
         $display("\tWrong CMP64 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*64 - 1 -: 64], a_arg64[data_idx], b_arg64[data_idx]);
+        error_cnt++;
+      end
+    end
+    
+    #(CLOCK_PERIOD);
+    $display("%tns: Start GT64 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
+      a_arg64[data_idx] = -1 - data_idx;
+      b_arg64[data_idx] = 64'hffff_ffff_ffff_ffff - data_idx - 1;
+    end
+    simd_opcode = GT64;
+    
+    #(CLOCK_PERIOD);//delay in 1 cycle to get ALU results 
+    $display("%tns: Check the results of the GT64 operation", $time);
+    for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/64; data_idx++) begin
+      if (simd_alu_out[(data_idx + 1)*64 - 1 -: 64] !== 1) begin
+        $display("\tWrong GT64 test result: got %0d, while arg_a=%0d and arg_b=%0d", simd_alu_out[(data_idx + 1)*64 - 1 -: 64], a_arg64[data_idx], b_arg64[data_idx]);
         error_cnt++;
       end
     end
