@@ -5,8 +5,7 @@ module simd_alu_adder_top (
   input                                         data_signed,
   input                                         sub,
   output [SIMD_DATA_WIDTH - 1 : 0]              result,
-  output [SIMD_DATA_WIDTH/8 - 1 : 0]            ovf,
-  output [SIMD_DATA_WIDTH/8 - 1 : 0]            udf
+  output [SIMD_DATA_WIDTH/8 - 1 : 0]            ovf
 );
   
   reg [SIMD_DATA_WIDTH - 1 : 0] r_res;

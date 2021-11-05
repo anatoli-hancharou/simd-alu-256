@@ -61,8 +61,7 @@ parameter CLOCK_PERIOD = 10;
     .in_b(simd_alu_arg_b),
     .opcode(simd_opcode),
     .out(simd_alu_out),
-    .out_overflow(is_ovf), // overflow while summ the data
-    .out_underflow(is_udf)  // undeflow while substruct the data
+    .out_overflow(is_ovf) // overflow while summ the data
   );
   
   // make SIMD ALU input Data vectors (A and B)
@@ -123,7 +122,9 @@ parameter CLOCK_PERIOD = 10;
   initial begin
     
     // ************ 8-bits data ************ //
-    #(CLOCK_PERIOD);
+    @(posedge reset_n);//wait until reset gets de-asserted
+    #(CLOCK_PERIOD/2);
+    
     $display("\n%tns: Start ADD8 operation", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
       a_arg8[data_idx] = 0 + data_idx;
@@ -140,7 +141,8 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
-    #(CLOCK_PERIOD);
+    // Test that operation execution takes 1 clock
+    //#(CLOCK_PERIOD);
     $display("%tns: Start S_ADD8 operation:", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
       s_a_arg8[data_idx] = 0 - data_idx;
@@ -158,7 +160,7 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
-    #(CLOCK_PERIOD*2);
+    #(CLOCK_PERIOD);
     $display("\n%tns: Start SUB8 operation", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/8; data_idx++) begin
       a_arg8[data_idx] = 255;
@@ -317,7 +319,7 @@ parameter CLOCK_PERIOD = 10;
       end
     end
     
-    #(CLOCK_PERIOD*2);
+    #(CLOCK_PERIOD);
     $display("\n%tns: Start SUB16 operation", $time);
     for (data_idx = 0; data_idx < SIMD_DATA_WIDTH/16; data_idx++) begin
       a_arg16[data_idx] = 255;
